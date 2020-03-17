@@ -1,5 +1,5 @@
 # COVID-19-app
-A shiny app to predict and study the beginning phase of COVID-19 outbreak
+**A [Shiny](https://shiny.rstudio.com/) app to predict and study the beginning phase of COVID-19 outbreak**
 
 Uncontrolled viral infections follow [exponential growth](https://en.wikipedia.org/wiki/Exponential_growth) and are relatively easy to model. This app illustrates how COVID-19 infection could develop in your country and why the drastic measures to fight the outbreak are justified. The model uses simple exponential maths, median estimates and ignores a whole lot of important parameters, such as reporting error, development of immunity, population density, demography, variation, and uncertainty. Consequently, the model is not accurate but gives an idea of how the outbreak could develop during the uncontrolled start phase most European countries have been going through in March 2020. The model parameters have been adjusted for the situation in Norway 2020-03-17. See [here](https://www.worldometers.info/coronavirus/#countries) to find the parameters for your country.
 
