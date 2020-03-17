@@ -23,7 +23,7 @@ Once you have the RstoxData package installed, you can run the app. Write:
 
 ```r
 library(shiny)
-shiny::runGitHub("BioticExplorer", "MikkoVihtakari")
+shiny::runGitHub("COVID-19-app", "MikkoVihtakari")
 ```
 
 ### Running the app from your hard drive
