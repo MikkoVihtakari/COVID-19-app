@@ -37,3 +37,15 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# Rstudio projets
+
+/*.Rproj
+
+# Mac parameters
+
+.DS_Store
+
+# Shiny server
+
+/rsconnect/

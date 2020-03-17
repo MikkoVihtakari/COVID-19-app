@@ -1,20 +1,52 @@
 ## Libraries required to run the app ####
 
-require(shiny)
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(scales)
+library(plotly)
 
-### Define operating system
-
-required.packages <- c("shiny", "shinydashboard", "tidyverse", "scales", "plotly")
-
-new.packages <- required.packages[!(required.packages %in% installed.packages()[,"Package"])]
-
-if (length(new.packages) > 0) install.packages(new.packages)
-
-sapply(required.packages, require, character.only = TRUE)
+# required.packages <- c("shiny", "shinydashboard", "tidyverse", "scales", "plotly")
+# new.packages <- required.packages[!(required.packages %in% installed.packages()[,"Package"])]
+# if (length(new.packages) > 0) install.packages(new.packages)
+# sapply(required.packages, require, character.only = TRUE)
 
 ## Source functions used by the app
 
-source("functions.R", encoding = "utf-8")
+predict.infected <- function(N0, T0, Td, t = 0:30, pop.size, SD = "no", SDt = NULL, inc.p = NULL, SDTd = NULL, pr.crit) {
+  
+  if(SD == "yes") {
+    
+    cut.date <- SDt + inc.p
+    cut.t <- as.numeric(cut.date - T0)
+    
+    tmp1 <- N0 * 2 ^ {min(t):cut.t/Td}
+    
+    tmp2 <- max(tmp1) * 2 ^ {0:(max(t) - cut.t)/SDTd}
+    
+    tmp <- unique(c(tmp1, tmp2))
+    
+    out <- data.frame(Date = T0 + t, pred.infected = round(tmp, 0))
+    
+  } else {
+    
+    tmp <- N0 * 2 ^ {t/Td}  
+    
+    out <- data.frame(Date = T0 + t, pred.infected = round(tmp, 0))  
+    
+  }
+  
+  if(max(out$pred.infected) > pop.size * 1e6) {
+    
+    out$pred.infected[out$pred.infected > pop.size * 1e6] <- pop.size * 1e6
+  }
+  
+  out$pred.critical <- round(out$pred.infected * (pr.crit / 100), 0)
+  out$daily.critical <- c(0, diff(out$pred.critical))
+  
+  out
+  
+}
 
 ##____________________
 ## User interface ####
@@ -46,7 +78,7 @@ body <- dashboardBody(
             box(
               title = "Model for the start phase of COVID-19 outbreak", width = 12, status = "primary", solidHeader = TRUE, collapsible = TRUE,
               
-              p("Uncontrolled viral infections follow", a("exponential growth", href = "https://en.wikipedia.org/wiki/Exponential_growth"), "and are relatively easy to model. This app illustrates how COVID-19 infection could develop in your country and why the drastic measures to fight the outbreak are justified. The model uses simple exponential maths, median estimates and ignores a whole lot of important parameters, such as reporting error, development of immunity, population density, demography, variation, and uncertainty. Consequently, the model is not accurate but gives an idea of how the outbreak could develop during the uncontrolled start phase most European countries have been going through in March 2020. The model parameters have been adjusted for the situation in Norway 2020-03-17. See", a("here", href = "https://www.worldometers.info/coronavirus/#countries"), "to find the parameters for your country."),
+              p("Uncontrolled viral infections follow", a("exponential growth", href = "https://en.wikipedia.org/wiki/Exponential_growth"), "and are relatively easy to model. This app illustrates how COVID-19 infection could develop in your country and why the drastic measures to fight the outbreak are justified. The model uses simple exponential maths, median estimates and ignores a whole lot of important parameters, such as reporting error, development of immunity, population density, demography, variation, and uncertainty. Consequently, the model is not accurate but gives an idea of how the outbreak could develop during the uncontrolled start phase most European countries have been going through in March 2020. The model parameters have been adjusted for the situation in Norway 2020-03-17. See", a("here", href = "https://www.worldometers.info/coronavirus/#countries"), "to find the current parameters for your country."),
               
               p("The", strong("doubling time"), "measures how many days it takes for the number of infected people to double. During the uncontrolled phase of the COVID-19 outbreak, this time has been typically between 2 and 4 days. An overview of the doubling times and numbers of people infected around the globe can be found from", a("here", href = "https://ourworldindata.org/coronavirus"), "and", a("here.", href = "https://www.worldometers.info/coronavirus/#countries")),
               
@@ -75,7 +107,7 @@ body <- dashboardBody(
                 )
               ),
               
-              p("The global mean for the percentage of", strong("people needing intensive"), "care is", a("6 at the moment.", href = "https://www.worldometers.info/coronavirus/"), "This parameter influences the estimates for the number of people hospitalized per day. The", strong("total population"), "in your country sets the limits for the number of people infected. Note that in reality, the infection curve starts to flatten out (i.e. the doubling time increases) as the outbreak proceeds due to natural feedback mechanisms (people recover and develop a resistance). The percentage of deaths depends on the number of people requiring hospital-care per day (i.e. whether the health-care system can handle all cases) and demography of the population. Therefore death estimates have not been calculated in the model."),
+              p("The global mean for the percentage of", strong("people needing intensive care"), "is", a("6 at the moment.", href = "https://www.worldometers.info/coronavirus/"), "This parameter influences the estimates for the number of people hospitalized per day. The", strong("total population"), "in your country sets the limits for the number of people infected. Note that in reality, the infection curve starts to flatten out (i.e. the doubling time increases) as the outbreak proceeds due to natural feedback mechanisms (people recover and develop a resistance). The percentage of deaths depends on the number of people requiring hospital-care per day (i.e. whether the health-care system can handle all cases) and demography of the population. Therefore death estimates have not been calculated in the model."),
               
               splitLayout(
                 numericInput("critical.cases", label = "Percentage hospitalized", min = 0, max = 100, value = 6),
